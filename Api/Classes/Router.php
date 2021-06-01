@@ -9,7 +9,6 @@ class Router {
     private static array $router = [];
     private Request $request;
     public string $path;
-    public string $action;
     public array $params;
 
     public function __construct(Request $request)
@@ -45,9 +44,36 @@ class Router {
      * @param
      * @return string
      **/
-    public function getUrl()
+    public function getUrl() : string
     {
         return $_SERVER['REQUEST_URI'];
+    }
+
+    /**
+     * get action
+     * 
+     * @param
+     * @return string
+     **/
+    public function getAction() : string
+    {
+        if($this->request->getRequestMethod()) {
+            if(isset($this->params)){
+                // var_dump($this->params); exit;
+
+            }
+            $action = self::$router['GET'][$this->path];
+
+        }
+        if($this->request->postRequestMethod()) {
+            if(isset($this->params)){
+                // var_dump($this->params); exit;
+
+            }
+            $action = self::$router['POST'][$this->path];
+        }
+
+        return $action;
     }
 
     /**
@@ -75,22 +101,13 @@ class Router {
     public function start()
     {
         $this->parseUrl();
-        if($this->request->getRequestMethod()) {
-            if(isset($this->params)){
-                var_dump($this->params); exit;
+        $action = $this->getAction();
 
-            }
-            $this->action = self::$router['GET'][$this->path];
-        }
-        if($this->request->postRequestMethod()) {
-            if(isset($this->params)){
-                var_dump($this->params); exit;
+        $position = stripos($action, '@');
+        $class = substr($action, 0, $position);
+        $method = substr($action, ++$position, strlen($action));
 
-            }
-            $this->action = self::$router['POST'][$this->path];
-        }
-
-        \call_user_func_array();
+        \call_user_func([new $class, $method]);
     }
 
 }
